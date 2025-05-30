@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  rate-limiter:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+    depends_on:
+      - redis
+    networks:
+      - rate-limiter
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - rate-limiter
+
+networks:
+  rate-limiter:
+    driver: bridge
