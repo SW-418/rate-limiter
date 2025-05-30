@@ -1,16 +1,32 @@
 package io.samwells.rate_limiter.Controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.samwells.rate_limiter.Models.RateLimitAlogirthm;
+import io.samwells.rate_limiter.Services.IRateLimitService;
 
 @RestController
 @RequestMapping("/api/v1/rate-limit")
 class RateLimitController {
 
-    @GetMapping("/limit")
-    public ResponseEntity<String> limit() {
-        return ResponseEntity.ok("limit");
+    private final IRateLimitService rateLimitService;
+
+    public RateLimitController(IRateLimitService rateLimitService) {
+        this.rateLimitService = rateLimitService;
+    }
+
+    @GetMapping("/fixed-window")
+    // Header is just used as an easy way to test different users, this would normally be IP or user id defined by JWT or similar
+    public ResponseEntity<String> fixedWindow(@RequestHeader("X-User-Id") String userId) {
+        if (!rateLimitService.isRateLimited(userId, RateLimitAlogirthm.FIXED_WINDOW)) return ResponseEntity.ok("ok");
+
+        return ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .build();
     }
 }
