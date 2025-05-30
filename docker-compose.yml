@@ -18,6 +18,19 @@ services:
       - "6379:6379"
     networks:
       - rate-limiter
+  
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    volumes:
+      - redisinsight:/db
+    networks:
+      - rate-limiter
+  
+volumes:
+  redisinsight:
 
 networks:
   rate-limiter:
