@@ -29,4 +29,14 @@ class RateLimitController {
             .status(HttpStatus.TOO_MANY_REQUESTS)
             .build();
     }
+
+    @GetMapping("/sliding-window")
+    // Header is just used as an easy way to test different users, this would normally be IP or user id defined by JWT or similar
+    public ResponseEntity<String> slidingWindow(@RequestHeader("X-User-Id") String userId) {
+        if (!rateLimitService.isRateLimited(userId, RateLimitAlogirthm.SLIDING_WINDOW)) return ResponseEntity.ok("ok");
+
+        return ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .build();
+    }
 }
