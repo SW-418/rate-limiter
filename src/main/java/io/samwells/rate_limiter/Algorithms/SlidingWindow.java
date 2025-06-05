@@ -45,7 +45,7 @@ public class SlidingWindow implements IRateLimitAlgorithm {
     }
 
     private String calculateKey(String key) {
-        return "rate_limit:" + key;
+        return "rate_limit:sliding:" + key;
     }
 
     private Long calculateWindowStart(long now) {
