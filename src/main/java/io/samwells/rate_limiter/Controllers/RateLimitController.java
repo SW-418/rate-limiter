@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.samwells.rate_limiter.Models.RateLimitAlogirthm;
+import io.samwells.rate_limiter.Models.RateLimitAlgorithm;
 import io.samwells.rate_limiter.Services.IRateLimitService;
 
 @RestController
@@ -23,7 +23,7 @@ class RateLimitController {
     @GetMapping("/fixed-window")
     // Header is just used as an easy way to test different users, this would normally be IP or user id defined by JWT or similar
     public ResponseEntity<String> fixedWindow(@RequestHeader("X-User-Id") String userId) {
-        if (!rateLimitService.isRateLimited(userId, RateLimitAlogirthm.FIXED_WINDOW)) return ResponseEntity.ok("ok");
+        if (!rateLimitService.isRateLimited(userId, RateLimitAlgorithm.FIXED_WINDOW)) return ResponseEntity.ok("ok");
 
         return ResponseEntity
             .status(HttpStatus.TOO_MANY_REQUESTS)
@@ -33,7 +33,17 @@ class RateLimitController {
     @GetMapping("/sliding-window")
     // Header is just used as an easy way to test different users, this would normally be IP or user id defined by JWT or similar
     public ResponseEntity<String> slidingWindow(@RequestHeader("X-User-Id") String userId) {
-        if (!rateLimitService.isRateLimited(userId, RateLimitAlogirthm.SLIDING_WINDOW)) return ResponseEntity.ok("ok");
+        if (!rateLimitService.isRateLimited(userId, RateLimitAlgorithm.SLIDING_WINDOW)) return ResponseEntity.ok("ok");
+
+        return ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .build();
+    }
+
+    @GetMapping("/token-bucket")
+    // Header is just used as an easy way to test different users, this would normally be IP or user id defined by JWT or similar
+    public ResponseEntity<String> tokenBucket(@RequestHeader("X-User-Id") String userId) {
+        if (!rateLimitService.isRateLimited(userId, RateLimitAlgorithm.TOKEN_BUCKET)) return ResponseEntity.ok("ok");
 
         return ResponseEntity
             .status(HttpStatus.TOO_MANY_REQUESTS)

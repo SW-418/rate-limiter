@@ -3,7 +3,7 @@ package io.samwells.rate_limiter.Algorithms;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import io.samwells.rate_limiter.Models.RateLimitAlogirthm;
+import io.samwells.rate_limiter.Models.RateLimitAlgorithm;
 import io.samwells.rate_limiter.Models.Exceptions.UnsupportedIntervalException;
 
 import java.time.Instant;
@@ -40,8 +40,8 @@ public class FixedWindow implements IRateLimitAlgorithm {
     }
 
     @Override
-    public RateLimitAlogirthm getAlgorithm() {
-        return RateLimitAlogirthm.FIXED_WINDOW;
+    public RateLimitAlgorithm getAlgorithm() {
+        return RateLimitAlgorithm.FIXED_WINDOW;
     }
 
     private String calculateKey(String key) {

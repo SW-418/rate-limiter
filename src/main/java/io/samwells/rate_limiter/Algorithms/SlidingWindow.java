@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
-import io.samwells.rate_limiter.Models.RateLimitAlogirthm;
+import io.samwells.rate_limiter.Models.RateLimitAlgorithm;
 
 @Component
 public class SlidingWindow implements IRateLimitAlgorithm {
@@ -40,8 +40,8 @@ public class SlidingWindow implements IRateLimitAlgorithm {
     }
 
     @Override
-    public RateLimitAlogirthm getAlgorithm() {
-        return RateLimitAlogirthm.SLIDING_WINDOW;
+    public RateLimitAlgorithm getAlgorithm() {
+        return RateLimitAlgorithm.SLIDING_WINDOW;
     }
 
     private String calculateKey(String key) {
