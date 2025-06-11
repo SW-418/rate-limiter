@@ -32,7 +32,8 @@ public class FixedWindow implements IRateLimitAlgorithm {
         long result = this.redisTemplate.execute(
             this.script,
             List.of(redisKey),
-            String.valueOf(this.limit)
+            String.valueOf(this.limit),
+            String.valueOf(this.interval.getDuration().toSeconds())
         );
         
         return result == 0;
@@ -44,7 +45,6 @@ public class FixedWindow implements IRateLimitAlgorithm {
     }
 
     private String calculateKey(String key) {
-        // TODO: Inject clock object
         var now = Instant.now();
         var second = now.getEpochSecond();
         var minute = second / 60;
