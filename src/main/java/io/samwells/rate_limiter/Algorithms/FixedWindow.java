@@ -1,42 +1,41 @@
 package io.samwells.rate_limiter.Algorithms;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import io.samwells.rate_limiter.Models.RateLimitAlgorithm;
 import io.samwells.rate_limiter.Models.Exceptions.UnsupportedIntervalException;
 
 import java.time.Instant;
-import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Component
 public class FixedWindow implements IRateLimitAlgorithm {
     private final ChronoUnit interval;
     private final int limit;
-    private final RedisTemplate<String, Integer> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
+    private final RedisScript<Long> script;
 
-    public FixedWindow(ChronoUnit interval, int limit, RedisTemplate<String, Integer> redisTemplate) {  
+    public FixedWindow(ChronoUnit interval, int limit, StringRedisTemplate redisTemplate, RedisScript<Long> script) {  
         this.interval = interval;
         this.limit = limit;
         this.redisTemplate = redisTemplate;
+        this.script = script;
     }
 
     @Override
     public boolean isRateLimited(String key) {
         String redisKey = calculateKey(key);
 
-        var count = redisTemplate
-            .opsForValue()
-            .increment(redisKey, 1);
+        long result = this.redisTemplate.execute(
+            this.script,
+            List.of(redisKey),
+            String.valueOf(this.limit)
+        );
         
-        // TODO: Throw exception instead of returning true when null
-        if (count == null || count > this.limit) return true;
-
-        var timeout = 1;
-        redisTemplate.expire(redisKey, Duration.of(timeout, this.interval));
-        
-        return false;
+        return result == 0;
     }
 
     @Override

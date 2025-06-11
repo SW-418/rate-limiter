@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import io.samwells.rate_limiter.Algorithms.FixedWindow;
 import io.samwells.rate_limiter.Algorithms.SlidingWindow;
 import io.samwells.rate_limiter.Algorithms.TokenBucket;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.core.io.ClassPathResource;
@@ -16,8 +15,8 @@ import org.springframework.core.io.ClassPathResource;
 @Configuration
 public class AlgorithmConfig {
     @Bean
-    public FixedWindow fixedWindow(RedisTemplate<String, Integer> redisTemplate) {
-        return new FixedWindow(ChronoUnit.MINUTES, 10, redisTemplate);
+    public FixedWindow fixedWindow(StringRedisTemplate redisTemplate) {
+        return new FixedWindow(ChronoUnit.MINUTES, 10, redisTemplate, script("scripts/fixedWindowRateLimit.lua"));
     }
     
     @Bean
@@ -32,12 +31,12 @@ public class AlgorithmConfig {
             ChronoUnit.SECONDS,
             1,
             redisTemplate,
-            script
+            script("scripts/tokenRateLimit.lua")
         );
     }
 
     @Bean
-    public RedisScript<Long> script() {
-        return RedisScript.of(new ClassPathResource("scripts/tokenRateLimit.lua"), Long.class);
+    public RedisScript<Long> script(String path) {
+        return RedisScript.of(new ClassPathResource(path), Long.class);
     }
 }
