@@ -2,8 +2,10 @@ package io.samwells.rate_limiter.Algorithms;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import io.samwells.rate_limiter.Models.RateLimitAlgorithm;
@@ -13,30 +15,33 @@ public class SlidingWindow implements IRateLimitAlgorithm {
     private final ChronoUnit interval;
     private final int limit;
     private final StringRedisTemplate redisTemplate;
+    private final RedisScript<Long> script;
 
-    public SlidingWindow(ChronoUnit interval, int limit, StringRedisTemplate redisTemplate) {  
+    public SlidingWindow(ChronoUnit interval, int limit, StringRedisTemplate redisTemplate, RedisScript<Long> script) {  
         this.interval = interval;
         this.limit = limit;
         this.redisTemplate = redisTemplate;
+        this.script = script;
     }
     
     @Override
     public boolean isRateLimited(String key) {
         String rateLimitKey = calculateKey(key);
-        var now = Instant.now().toEpochMilli();
-        var windowStart = calculateWindowStart(now);
 
-        // Remove old entries
-        redisTemplate.opsForZSet().removeRangeByScore(rateLimitKey, 0, windowStart);
+        var currentTimeInMs = Instant.now().toEpochMilli();
+        var windowStartInMs = calculateWindowStart(currentTimeInMs);
+        var windowSizeInSeconds = this.interval.getDuration().toSeconds();
 
-        // Retrieve and check counts within window
-        var count = redisTemplate.opsForZSet().count(rateLimitKey, windowStart, now);
-        if (count == null || count >= this.limit) return true;
-
-        // Add entry if space in window
-        redisTemplate.opsForZSet().add(rateLimitKey, String.valueOf(now), now);
+        long result = redisTemplate.execute(
+            this.script, 
+            List.of(rateLimitKey), 
+            String.valueOf(this.limit), 
+            String.valueOf(currentTimeInMs), 
+            String.valueOf(windowStartInMs),
+            String.valueOf(windowSizeInSeconds)
+        );
         
-        return false;
+        return result == 0;
     }
 
     @Override
@@ -48,7 +53,7 @@ public class SlidingWindow implements IRateLimitAlgorithm {
         return "rate_limit:sliding:" + key;
     }
 
-    private Long calculateWindowStart(long now) {
-        return now - this.interval.getDuration().toMillis();
+    private Long calculateWindowStart(long currentTimeInMs) {
+        return currentTimeInMs - this.interval.getDuration().toMillis();
     }
 }
