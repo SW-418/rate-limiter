@@ -15,28 +15,42 @@ import org.springframework.core.io.ClassPathResource;
 @Configuration
 public class AlgorithmConfig {
     @Bean
-    public FixedWindow fixedWindow(StringRedisTemplate redisTemplate) {
-        return new FixedWindow(ChronoUnit.MINUTES, 10, redisTemplate, script("scripts/fixedWindowRateLimit.lua"));
+    public FixedWindow fixedWindow(StringRedisTemplate redisTemplate, RedisScript<Long> fixedWindowScript) {
+        return new FixedWindow(ChronoUnit.MINUTES, 10, redisTemplate, fixedWindowScript);
     }
     
     @Bean
-    public SlidingWindow slidingWindow(StringRedisTemplate redisTemplate) {
-        return new SlidingWindow(ChronoUnit.MINUTES, 10, redisTemplate);
+    public SlidingWindow slidingWindow(StringRedisTemplate redisTemplate, RedisScript<Long> slidingWindowScript) {
+        return new SlidingWindow(ChronoUnit.MINUTES, 10, redisTemplate, slidingWindowScript);
     }
 
     @Bean
-    public TokenBucket tokenBucket(StringRedisTemplate redisTemplate, RedisScript<Long> script) {
+    public TokenBucket tokenBucket(StringRedisTemplate redisTemplate, RedisScript<Long> tokenBucketScript) {
         return new TokenBucket(
             10,
             ChronoUnit.SECONDS,
             1,
             redisTemplate,
-            script("scripts/tokenRateLimit.lua")
+            tokenBucketScript
         );
     }
 
     @Bean
-    public RedisScript<Long> script(String path) {
+    public RedisScript<Long> fixedWindowScript() {
+        return script("scripts/fixedWindowRateLimit.lua");
+    }
+
+    @Bean
+    public RedisScript<Long> slidingWindowScript() {
+        return script("scripts/slidingWindowRateLimit.lua");
+    }
+
+    @Bean
+    public RedisScript<Long> tokenBucketScript() {
+        return script("scripts/tokenRateLimit.lua");
+    }
+
+    private RedisScript<Long> script(String path) {
         return RedisScript.of(new ClassPathResource(path), Long.class);
     }
 }
