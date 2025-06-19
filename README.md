@@ -11,4 +11,5 @@ Implementing rate limiter algorithms using Java/Spring and Redis
 - Fixed Window ✅
 - Sliding Window ✅
 - Token Bucket ✅
-- Leaky Bucket ❌
+- Leaky Bucket ✅
+    - The job for background processing is hacky and not suitable for a distributed production environment
