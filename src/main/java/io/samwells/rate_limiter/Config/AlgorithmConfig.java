@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import io.samwells.rate_limiter.Algorithms.FixedWindow;
 import io.samwells.rate_limiter.Algorithms.SlidingWindow;
 import io.samwells.rate_limiter.Algorithms.TokenBucket;
+import io.samwells.rate_limiter.Algorithms.LeakyBucket;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.core.io.ClassPathResource;
@@ -36,6 +37,16 @@ public class AlgorithmConfig {
     }
 
     @Bean
+    public LeakyBucket leakyBucket(StringRedisTemplate redisTemplate, RedisScript<Long> leakyBucketScript) {
+        return new LeakyBucket(
+            10,
+            100,
+            redisTemplate,
+            leakyBucketScript
+        );
+    }
+
+    @Bean
     public RedisScript<Long> fixedWindowScript() {
         return script("scripts/fixedWindowRateLimit.lua");
     }
@@ -48,6 +59,11 @@ public class AlgorithmConfig {
     @Bean
     public RedisScript<Long> tokenBucketScript() {
         return script("scripts/tokenRateLimit.lua");
+    }
+
+    @Bean
+    public RedisScript<Long> leakyBucketScript() {
+        return script("scripts/leakyBucketRateLimit.lua");
     }
 
     private RedisScript<Long> script(String path) {
