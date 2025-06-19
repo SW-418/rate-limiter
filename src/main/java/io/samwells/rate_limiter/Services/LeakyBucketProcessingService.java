@@ -20,7 +20,8 @@ public class LeakyBucketProcessingService {
         // It is blocking and not performant (keys() is a blocking operation)
         // Jobs could be executed multiple times in a distributed environment due to no locking
         // We aren't setting a limit on the number of jobs to process in a single batch
-    @Scheduled(fixedRate = 5000)
+    // FixedRate should ideally match dripIntervalInMs used in LeakyBucket
+    @Scheduled(fixedRate = 100)
     public void process() {
         var currentTimeInMs = Instant.now().toEpochMilli();
         // This is blocking and not performant
