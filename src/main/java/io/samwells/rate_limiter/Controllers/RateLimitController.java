@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import io.samwells.rate_limiter.Models.RateLimitAlgorithm;
 import io.samwells.rate_limiter.Models.Requests.BackgroundJobRequest;
 import io.samwells.rate_limiter.Services.IRateLimitService;
+import jakarta.validation.Valid;
 import io.samwells.rate_limiter.Models.HttpBackgroundJob;
 
 @RestController
@@ -57,7 +58,7 @@ class RateLimitController {
     // POST is used here as leaky bucket is a stateful algorithm that can result in longer response times
     @PostMapping("/leaky-bucket")
     // Header is just used as an easy way to test different users, this would normally be IP or user id defined by JWT or similar
-    public ResponseEntity<String> leakyBucket(@RequestHeader("X-User-Id") String userId, @RequestBody BackgroundJobRequest request) {
+    public ResponseEntity<String> leakyBucket(@RequestHeader("X-User-Id") String userId, @Valid @RequestBody BackgroundJobRequest request) {
         if (!rateLimitService.isRateLimited(userId, RateLimitAlgorithm.LEAKY_BUCKET, new HttpBackgroundJob(request))) return ResponseEntity.accepted().build();
 
         return ResponseEntity
